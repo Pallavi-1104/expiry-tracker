@@ -62,11 +62,21 @@ app.set("db", db);
 app.use("/auth", require("./routes/auth"));
 app.use("/", require("./routes/items"));
 
+// ── IMPORTANT: Frontend fallback ──────────────────────
+app.get("/", (req, res) => {
+    res.sendFile(path.join(__dirname, "frontend", "index.html"));
+});
+
+app.get("/*", (req, res) => {
+    res.sendFile(path.join(__dirname, "frontend", "index.html"));
+});
+
 // Cron Job (8 AM)
 cron.schedule("0 8 * * *", async () => {
   console.log("🔔 Daily expiry check running at 8AM...");
   await sendExpiryAlerts(db);
 });
+
 
 // Start Server
 const PORT = process.env.PORT || 3000;
