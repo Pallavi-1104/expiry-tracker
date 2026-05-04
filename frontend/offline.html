@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline — Expiry Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: #f0f4f8;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            text-align: center;
+        }
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 48px 32px;
+            max-width: 360px;
+            width: 100%;
+            box-shadow: 0 8px 32px rgba(0,0,0,.1);
+        }
+        .icon { font-size: 70px; margin-bottom: 20px; }
+        h1 {
+            font-size: 24px;
+            font-weight: 800;
+            color: #1e3a5f;
+            margin-bottom: 10px;
+        }
+        p {
+            font-size: 14px;
+            color: #6b7a8d;
+            line-height: 1.6;
+            margin-bottom: 28px;
+        }
+        .btn {
+            background: #1e3a5f;
+            color: white;
+            border: none;
+            padding: 13px 32px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Outfit', sans-serif;
+            transition: background .2s;
+        }
+        .btn:hover { background: #16304f; }
+        .status {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: #dc2626;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50%       { opacity: .3; }
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="icon">📡</div>
+        <h1>You're Offline</h1>
+        <p>No internet connection. Check your Wi-Fi or mobile data and try again.</p>
+        <button class="btn" onclick="tryAgain()">Try Again</button>
+        <div class="status">
+            <div class="dot" id="dot"></div>
+            <span id="statusText">Waiting for connection...</span>
+        </div>
+    </div>
+    <script>
+        function tryAgain() {
+            if (navigator.onLine) {
+                window.location.href = "/";
+            } else {
+                document.getElementById("statusText").textContent = "Still offline. Try again.";
+            }
+        }
+        // Auto-redirect when internet comes back
+        window.addEventListener("online", () => {
+            document.getElementById("dot").style.background = "#16a34a";
+            document.getElementById("statusText").textContent = "Back online! Redirecting...";
+            setTimeout(() => window.location.href = "/", 1000);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Expiry Tracker System</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --navy:   #1e3a5f;
+            --navy2:  #16304f;
+            --bg:     #f0f4f8;
+            --white:  #ffffff;
+            --text:   #1a2332;
+            --muted:  #6b7a8d;
+            --border: #e2e8f0;
+ 
+            /* category colours */
+            --food-bg:      #fff7ed;
+            --food-border:  #fb923c;
+            --food-text:    #9a3412;
+            --food-head:    #ea580c;
+            --food-light:   #fed7aa;
+ 
+            --med-bg:       #f0fdf4;
+            --med-border:   #4ade80;
+            --med-text:     #14532d;
+            --med-head:     #16a34a;
+            --med-light:    #bbf7d0;
+ 
+            --cos-bg:       #fdf4ff;
+            --cos-border:   #e879f9;
+            --cos-text:     #701a75;
+            --cos-head:     #c026d3;
+            --cos-light:    #f5d0fe;
+ 
+            --gen-bg:       #eff6ff;
+            --gen-border:   #60a5fa;
+            --gen-text:     #1e3a8a;
+            --gen-head:     #2563eb;
+            --gen-light:    #bfdbfe;
+ 
+            --oth-bg:       #f8fafc;
+            --oth-border:   #94a3b8;
+            --oth-text:     #1e293b;
+            --oth-head:     #475569;
+            --oth-light:    #cbd5e1;
+        }
+ 
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+ 
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+ 
+        /* ── NAV ── */
+        nav {
+            background: var(--navy);
+            padding: 0 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 62px;
+            box-shadow: 0 2px 12px rgba(0,0,0,.18);
+            position: sticky; top: 0; z-index: 100;
+        }
+        .nav-brand {
+            display: flex; align-items: center; gap: 10px;
+        }
+        .nav-brand .logo {
+            width: 36px; height: 36px; border-radius: 10px;
+            background: rgba(255,255,255,.15);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px;
+        }
+        nav h1 { color: white; font-size: 19px; font-weight: 700; letter-spacing: -.3px; }
+        .nav-right { display: flex; align-items: center; gap: 12px; }
+        #welcomeText { font-size: 13px; color: rgba(255,255,255,.65); }
+        #logoutBtn {
+            background: #e74c3c; color: white; border: none;
+            padding: 7px 18px; border-radius: 8px; cursor: pointer;
+            font-size: 13px; font-weight: 600; font-family: 'Outfit', sans-serif;
+            display: none; transition: background .2s;
+        }
+        #logoutBtn:hover { background: #c0392b; }
+ 
+        /* ── AUTH ── */
+        #authSection {
+            max-width: 420px; margin: 64px auto;
+            background: var(--white); padding: 36px;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(30,58,95,.12);
+        }
+        .auth-logo {
+            text-align: center; margin-bottom: 24px;
+        }
+        .auth-logo span { font-size: 44px; }
+        .auth-logo h2 { font-size: 22px; font-weight: 800; color: var(--navy); margin-top: 8px; }
+        .auth-logo p { font-size: 13px; color: var(--muted); margin-top: 4px; }
+ 
+        .inp {
+            width: 100%; padding: 11px 14px; margin-bottom: 12px;
+            border: 1.5px solid var(--border); border-radius: 10px;
+            font-size: 14px; font-family: 'Outfit', sans-serif;
+            outline: none; transition: border .2s, box-shadow .2s;
+            color: var(--text);
+        }
+        .inp:focus { border-color: var(--navy); box-shadow: 0 0 0 3px rgba(30,58,95,.1); }
+        .inp::placeholder { color: #a0aec0; }
+ 
+        .auth-btn {
+            width: 100%; padding: 12px; border: none; border-radius: 10px;
+            font-size: 15px; font-weight: 700; cursor: pointer; color: white;
+            font-family: 'Outfit', sans-serif; transition: opacity .2s, transform .1s;
+        }
+        .auth-btn:hover { opacity: .92; transform: translateY(-1px); }
+        .auth-btn:active { transform: translateY(0); }
+        .auth-toggle { text-align: center; margin-top: 16px; font-size: 13px; color: var(--muted); }
+        .auth-toggle span { color: var(--navy); cursor: pointer; font-weight: 700; }
+        .auth-toggle span:hover { text-decoration: underline; }
+ 
+        /* ── APP ── */
+        #appSection { display: none; max-width: 1060px; margin: 28px auto; padding: 0 20px 40px; }
+ 
+        /* ── DASHBOARD ── */
+        .dashboard {
+            display: grid; grid-template-columns: repeat(4, 1fr);
+            gap: 14px; margin-bottom: 24px;
+        }
+        .dcard {
+            background: var(--white); padding: 20px 18px;
+            border-radius: 14px; text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,.06);
+            border-top: 4px solid transparent;
+            transition: transform .2s, box-shadow .2s;
+        }
+        .dcard:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,.1); }
+        .dcard.d-total { border-top-color: var(--navy); }
+        .dcard.d-safe  { border-top-color: #16a34a; }
+        .dcard.d-soon  { border-top-color: #ea580c; }
+        .dcard.d-exp   { border-top-color: #dc2626; }
+        .dcard-icon { font-size: 26px; margin-bottom: 6px; }
+        .dnum { font-size: 38px; font-weight: 800; line-height: 1; }
+        .dcard.d-total .dnum { color: var(--navy); }
+        .dcard.d-safe  .dnum { color: #16a34a; }
+        .dcard.d-soon  .dnum { color: #ea580c; }
+        .dcard.d-exp   .dnum { color: #dc2626; }
+        .dlbl { font-size: 11px; color: var(--muted); margin-top: 5px; text-transform: uppercase; letter-spacing: .7px; font-weight: 600; }
+ 
+        /* ── ADD FORM ── */
+        .add-box {
+            background: var(--white); padding: 22px 26px;
+            border-radius: 14px; box-shadow: 0 2px 10px rgba(0,0,0,.06);
+            margin-bottom: 28px;
+            border-left: 5px solid var(--navy);
+        }
+        .add-box h3 { color: var(--navy); font-size: 16px; font-weight: 700; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+        .frow { display: flex; gap: 10px; flex-wrap: wrap; }
+        .frow input, .frow select {
+            flex: 1; min-width: 140px; padding: 11px 14px;
+            border: 1.5px solid var(--border); border-radius: 10px;
+            font-size: 13px; font-family: 'Outfit', sans-serif;
+            outline: none; color: var(--text); background: #f8fafc;
+            transition: border .2s;
+        }
+        .frow input:focus, .frow select:focus {
+            border-color: var(--navy); background: white;
+        }
+        .btn-add {
+            padding: 11px 26px; background: var(--navy); color: white;
+            border: none; border-radius: 10px; cursor: pointer;
+            font-size: 14px; font-weight: 700; font-family: 'Outfit', sans-serif;
+            transition: background .2s, transform .1s;
+            white-space: nowrap;
+        }
+        .btn-add:hover { background: var(--navy2); transform: translateY(-1px); }
+ 
+        /* ── FILTER BAR ── */
+        .filter-bar {
+            background: var(--white); padding: 16px 22px;
+            border-radius: 14px; box-shadow: 0 2px 10px rgba(0,0,0,.06);
+            margin-bottom: 24px;
+            display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+        }
+        .filter-bar input, .filter-bar select {
+            flex: 1; min-width: 140px; padding: 10px 14px;
+            border: 1.5px solid var(--border); border-radius: 10px;
+            font-size: 13px; font-family: 'Outfit', sans-serif; outline: none;
+            background: #f8fafc; color: var(--text); transition: border .2s;
+        }
+        .filter-bar input:focus, .filter-bar select:focus {
+            border-color: var(--navy); background: white;
+        }
+        .fbtn {
+            padding: 10px 18px; border: none; border-radius: 10px;
+            cursor: pointer; font-size: 13px; font-weight: 700;
+            font-family: 'Outfit', sans-serif;
+            transition: opacity .2s, transform .1s; white-space: nowrap;
+        }
+        .fbtn:hover { opacity: .88; transform: translateY(-1px); }
+        .fb-navy   { background: var(--navy); color: white; }
+        .fb-gray   { background: #94a3b8; color: white; }
+        .fb-orange { background: #ea580c; color: white; }
+ 
+        /* ─────────────────────────────────────────
+           CATEGORY SECTIONS  ← NEW
+        ───────────────────────────────────────── */
+        .cat-sections { display: flex; flex-direction: column; gap: 22px; }
+ 
+        .cat-section {
+            border-radius: 16px; overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0,0,0,.07);
+            border: 1.5px solid transparent;
+            transition: box-shadow .2s;
+        }
+        .cat-section:hover { box-shadow: 0 6px 24px rgba(0,0,0,.12); }
+ 
+        /* Category header bar */
+        .cat-head {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 14px 22px; cursor: pointer;
+            user-select: none;
+        }
+        .cat-head-left { display: flex; align-items: center; gap: 12px; }
+        .cat-head-icon {
+            width: 42px; height: 42px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px; flex-shrink: 0;
+        }
+        .cat-head-title { font-size: 17px; font-weight: 800; }
+        .cat-head-sub   { font-size: 12px; margin-top: 2px; font-weight: 500; opacity: .75; }
+        .cat-count {
+            display: inline-flex; align-items: center; justify-content: center;
+            min-width: 28px; height: 28px; border-radius: 20px;
+            font-size: 13px; font-weight: 800; padding: 0 8px;
+        }
+        .cat-chevron { font-size: 18px; transition: transform .3s; margin-left: 8px; }
+        .cat-section.collapsed .cat-chevron { transform: rotate(-90deg); }
+ 
+        /* Category body */
+        .cat-body { background: white; }
+        .cat-section.collapsed .cat-body { display: none; }
+ 
+        /* Per-category colour themes */
+        .cat-food   { border-color: var(--food-border); background: var(--food-bg); }
+        .cat-food   .cat-head { background: linear-gradient(135deg, #fff7ed, #ffedd5); }
+        .cat-food   .cat-head-icon { background: var(--food-light); }
+        .cat-food   .cat-head-title { color: var(--food-text); }
+        .cat-food   .cat-count { background: var(--food-light); color: var(--food-text); }
+ 
+        .cat-medicine { border-color: var(--med-border); background: var(--med-bg); }
+        .cat-medicine .cat-head { background: linear-gradient(135deg, #f0fdf4, #dcfce7); }
+        .cat-medicine .cat-head-icon { background: var(--med-light); }
+        .cat-medicine .cat-head-title { color: var(--med-text); }
+        .cat-medicine .cat-count { background: var(--med-light); color: var(--med-text); }
+ 
+        .cat-cosmetics { border-color: var(--cos-border); background: var(--cos-bg); }
+        .cat-cosmetics .cat-head { background: linear-gradient(135deg, #fdf4ff, #fae8ff); }
+        .cat-cosmetics .cat-head-icon { background: var(--cos-light); }
+        .cat-cosmetics .cat-head-title { color: var(--cos-text); }
+        .cat-cosmetics .cat-count { background: var(--cos-light); color: var(--cos-text); }
+ 
+        .cat-general { border-color: var(--gen-border); background: var(--gen-bg); }
+        .cat-general .cat-head { background: linear-gradient(135deg, #eff6ff, #dbeafe); }
+        .cat-general .cat-head-icon { background: var(--gen-light); }
+        .cat-general .cat-head-title { color: var(--gen-text); }
+        .cat-general .cat-count { background: var(--gen-light); color: var(--gen-text); }
+ 
+        .cat-other { border-color: var(--oth-border); background: var(--oth-bg); }
+        .cat-other .cat-head { background: linear-gradient(135deg, #f8fafc, #f1f5f9); }
+        .cat-other .cat-head-icon { background: var(--oth-light); }
+        .cat-other .cat-head-title { color: var(--oth-text); }
+        .cat-other .cat-count { background: var(--oth-light); color: var(--oth-text); }
+ 
+        /* TABLE inside each section */
+        table { width: 100%; border-collapse: collapse; }
+        thead tr { background: #f8fafc; }
+        th {
+            padding: 11px 18px; text-align: left;
+            font-size: 11px; color: var(--muted);
+            text-transform: uppercase; letter-spacing: .6px;
+            font-weight: 700; border-bottom: 1.5px solid var(--border);
+        }
+        td { padding: 12px 18px; font-size: 14px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+        tbody tr:last-child td { border-bottom: none; }
+        tbody tr:hover td { background: #f8fafc; }
+        .item-name { font-weight: 600; color: var(--text); }
+ 
+        /* Status badges */
+        .badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 4px 11px; border-radius: 20px;
+            font-size: 12px; font-weight: 700;
+        }
+        .b-exp  { background: #fee2e2; color: #991b1b; }
+        .b-soon { background: #ffedd5; color: #9a3412; }
+        .b-safe { background: #dcfce7; color: #14532d; }
+        .b-today { background: #fef9c3; color: #713f12; }
+ 
+        .del-btn {
+            background: #fee2e2; color: #dc2626; border: none;
+            padding: 6px 14px; border-radius: 8px; cursor: pointer;
+            font-size: 12px; font-weight: 700; font-family: 'Outfit', sans-serif;
+            transition: background .2s;
+        }
+        .del-btn:hover { background: #dc2626; color: white; }
+ 
+        /* Empty state */
+        .empty-cat {
+            text-align: center; padding: 28px 20px;
+            font-size: 13px; color: var(--muted);
+        }
+        .empty-cat span { font-size: 28px; display: block; margin-bottom: 6px; }
+ 
+        /* ── ALL VIEW (search/filter mode) ── */
+        .all-box {
+            background: var(--white); border-radius: 16px;
+            overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,.07);
+            border: 1.5px solid var(--border);
+        }
+        .all-box-head {
+            padding: 16px 22px; border-bottom: 1.5px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .all-box-head h3 { font-size: 16px; font-weight: 700; color: var(--navy); }
+        #itemCount { font-size: 12px; color: var(--muted); font-weight: 600; }
+ 
+        /* ── RESPONSIVE ── */
+        @media (max-width: 640px) {
+            .dashboard { grid-template-columns: repeat(2, 1fr); }
+            .frow, .filter-bar { flex-direction: column; }
+            th:nth-child(3), td:nth-child(3) { display: none; }
+        }
+ 
+        /* ── ANIMATIONS ── */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(14px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .cat-section { animation: fadeUp .3s ease both; }
+        .cat-section:nth-child(1) { animation-delay: .05s; }
+        .cat-section:nth-child(2) { animation-delay: .10s; }
+        .cat-section:nth-child(3) { animation-delay: .15s; }
+        .cat-section:nth-child(4) { animation-delay: .20s; }
+        .cat-section:nth-child(5) { animation-delay: .25s; }
+    </style>
+    <!-- PWA manifest -->
+    <link rel="manifest" href="/manifest.json">
+
+    <!-- Theme colour for Android status bar -->
+    <meta name="theme-color" content="#1e3a5f">
+
+    <!-- iPhone / iOS support -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="ExpiryTracker">
+    <link rel="apple-touch-icon" href="/icons/icon-192.png">
+</head>
+<body>
+ 
+<!-- ═══ NAVBAR ═══ -->
+<nav>
+    <div class="nav-brand">
+        <div class="logo">📦</div>
+        <h1>Expiry Tracker System</h1>
+    </div>
+    <div class="nav-right">
+        <span id="welcomeText"></span>
+        <!-- PWA Install Button - hidden by default, shows automatically -->
+<button id="installBtn" onclick="installApp()" style="
+    display: none;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,0.15);
+    color: white;
+    border: 1.5px solid rgba(255,255,255,0.35);
+    padding: 7px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'Outfit', sans-serif;
+    margin-right: 8px;
+    transition: background 0.2s;
+">📲 Install App</button>
+        <button id="logoutBtn" onclick="logout()">Logout</button>
+    </div>
+</nav>
+ 
+<!-- ═══ AUTH ═══ -->
+<div id="authSection">
+    <!-- LOGIN -->
+    <div id="loginForm">
+        <div class="auth-logo">
+            <span>📦</span>
+            <h2>Welcome Back</h2>
+            <p>Login to your Expiry Tracker</p>
+        </div>
+        <input class="inp" id="loginEmail"    type="email"    placeholder="Email address">
+        <input class="inp" id="loginPassword" type="password" placeholder="Password">
+        <button class="auth-btn" style="background:var(--navy)" onclick="login()">Login →</button>
+        <div class="auth-toggle">New here? <span onclick="showReg()">Create an account</span></div>
+    </div>
+    <!-- REGISTER -->
+    <div id="registerForm" style="display:none">
+        <div class="auth-logo">
+            <span>✨</span>
+            <h2>Create Account</h2>
+            <p>Start tracking your items</p>
+        </div>
+        <input class="inp" id="regName"     placeholder="Full Name">
+        <input class="inp" id="regEmail"    type="email"    placeholder="Email address">
+        <input class="inp" id="regPassword" type="password" placeholder="Password (min 6 chars)">
+        <button class="auth-btn" style="background:#16a34a" onclick="register()">Create Account →</button>
+        <div class="auth-toggle">Already have account? <span onclick="showLogin()">Login</span></div>
+    </div>
+</div>
+ 
+<!-- ═══ MAIN APP ═══ -->
+<div id="appSection">
+ 
+    <!-- Dashboard Cards -->
+    <div class="dashboard">
+        <div class="dcard d-total">
+            <div class="dcard-icon">📦</div>
+            <div class="dnum" id="cTotal">0</div>
+            <div class="dlbl">Total Items</div>
+        </div>
+        <div class="dcard d-safe">
+            <div class="dcard-icon">✅</div>
+            <div class="dnum" id="cSafe">0</div>
+            <div class="dlbl">Safe</div>
+        </div>
+        <div class="dcard d-soon">
+            <div class="dcard-icon">⚠️</div>
+            <div class="dnum" id="cSoon">0</div>
+            <div class="dlbl">Expiring Soon</div>
+        </div>
+        <div class="dcard d-exp">
+            <div class="dcard-icon">🚨</div>
+            <div class="dnum" id="cExp">0</div>
+            <div class="dlbl">Expired</div>
+        </div>
+    </div>
+ 
+    <!-- Add Item Form -->
+    <div class="add-box">
+        <h3>➕ Add New Item</h3>
+        <div class="frow">
+            <input id="itemName" placeholder="Item name (e.g. Milk, Paracetamol)">
+            <input id="itemDate" type="date">
+            <select id="itemCat">
+                <option value="Food">🍎 Food</option>
+                <option value="Medicine">💊 Medicine</option>
+                <option value="Cosmetics">💄 Cosmetics</option>
+                <option value="General">📦 General</option>
+                <option value="Other">🗂️ Other</option>
+            </select>
+            <button class="btn-add" onclick="addItem()">Add Item</button>
+        </div>
+    </div>
+ 
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+        <input id="searchInput" placeholder="🔍  Search by item name...">
+        <select id="filterCat">
+            <option value="All">All Categories</option>
+            <option value="Food">🍎 Food</option>
+            <option value="Medicine">💊 Medicine</option>
+            <option value="Cosmetics">💄 Cosmetics</option>
+            <option value="General">📦 General</option>
+            <option value="Other">🗂️ Other</option>
+        </select>
+        <button class="fbtn fb-navy"   onclick="applyFilter()">🔍 Filter</button>
+        <button class="fbtn fb-gray"   onclick="resetFilter()">↺ Reset</button>
+        <button class="fbtn fb-orange" onclick="showSoon()">⚠️ Expiring Soon</button>
+    </div>
+ 
+    <!-- CATEGORY SECTIONS (default view) -->
+    <div class="cat-sections" id="catSections"></div>
+ 
+    <!-- ALL ITEMS TABLE (search/filter mode) -->
+    <div class="all-box" id="allBox" style="display:none">
+        <div class="all-box-head">
+            <h3 id="allBoxTitle">🔍 Search Results</h3>
+            <span id="itemCount"></span>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Item Name</th>
+                    <th>Category</th>
+                    <th>Expiry Date</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="allBody"></tbody>
+        </table>
+    </div>
+ 
+</div><!-- end appSection -->
+ 
+<script>
+const BASE  = " http://10.251.5.205:3000";
+let token   = localStorage.getItem("token");
+let allItems = [];  // cache of all items
+ 
+// Category config — icon, label, css class, description
+const CAT_CONFIG = {
+    "Food":      { icon: "🍎", label: "Food",      cls: "cat-food",      desc: "Groceries & perishables" },
+    "Medicine":  { icon: "💊", label: "Medicine",  cls: "cat-medicine",  desc: "Medications & supplements" },
+    "Cosmetics": { icon: "💄", label: "Cosmetics", cls: "cat-cosmetics", desc: "Beauty & skincare products" },
+    "General":   { icon: "📦", label: "General",   cls: "cat-general",   desc: "Everyday household items" },
+    "Other":     { icon: "🗂️", label: "Other",     cls: "cat-other",     desc: "Miscellaneous items" },
+};
+const CAT_ORDER = ["Food", "Medicine", "Cosmetics", "General", "Other"];
+ 
+/* ── PAGE LOAD ─────────────────────────── */
+window.onload = () => token ? showApp() : showAuthSection();
+ 
+/* ── AUTH HELPERS ─────────────────────── */
+function showAuthSection() {
+    document.getElementById("authSection").style.display = "block";
+    document.getElementById("appSection").style.display  = "none";
+    document.getElementById("logoutBtn").style.display   = "none";
+    document.getElementById("welcomeText").textContent   = "";
+}
+function showApp() {
+    document.getElementById("authSection").style.display = "none";
+    document.getElementById("appSection").style.display  = "block";
+    document.getElementById("logoutBtn").style.display   = "inline-block";
+    const name = localStorage.getItem("userName") || "User";
+    document.getElementById("welcomeText").textContent = "👋 Hello, " + name;
+    loadDashboard();
+    loadItemsAndRenderSections();
+}
+function showReg()   { document.getElementById("loginForm").style.display="none";   document.getElementById("registerForm").style.display="block"; }
+function showLogin() { document.getElementById("registerForm").style.display="none"; document.getElementById("loginForm").style.display="block";   }
+ 
+/* ── REGISTER ─────────────────────────── */
+async function register() {
+    const name     = document.getElementById("regName").value.trim();
+    const email    = document.getElementById("regEmail").value.trim();
+    const password = document.getElementById("regPassword").value;
+    if (!name || !email || !password) return alert("Please fill all fields!");
+    if (password.length < 6) return alert("Password must be at least 6 characters!");
+    const res  = await fetch(BASE + "/auth/register", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password })
+    });
+    const data = await res.json();
+    if (data.status === "success") { alert("✅ Account created! Please login."); showLogin(); }
+    else alert("❌ " + (data.message || "Registration failed"));
+}
+ 
+/* ── LOGIN ────────────────────────────── */
+async function login() {
+    const email    = document.getElementById("loginEmail").value.trim();
+    const password = document.getElementById("loginPassword").value;
+    if (!email || !password) return alert("Please fill all fields!");
+    const res  = await fetch(BASE + "/auth/login", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    if (data.status === "success") {
+        token = data.token;
+        localStorage.setItem("token", token);
+        localStorage.setItem("userName", data.name);
+        showApp();
+    } else alert("❌ " + (data.message || "Login failed"));
+}
+ 
+/* ── LOGOUT ───────────────────────────── */
+function logout() {
+    token = null;
+    localStorage.removeItem("token");
+    localStorage.removeItem("userName");
+    showAuthSection();
+    showLogin();
+}
+ 
+/* ── DASHBOARD ────────────────────────── */
+async function loadDashboard() {
+    const res = await fetch(BASE + "/dashboard", {
+        headers: { "Authorization": "Bearer " + token }
+    });
+    const d = await res.json();
+    document.getElementById("cTotal").textContent = d.total         || 0;
+    document.getElementById("cSafe").textContent  = d.safe          || 0;
+    document.getElementById("cSoon").textContent  = d.expiring_soon || 0;
+    document.getElementById("cExp").textContent   = d.expired       || 0;
+}
+ 
+/* ── LOAD ALL ITEMS → RENDER SECTIONS ─── */
+async function loadItemsAndRenderSections() {
+    const res = await fetch(BASE + "/items", {
+        headers: { "Authorization": "Bearer " + token }
+    });
+    allItems = await res.json();
+    showCategorySections(allItems);
+    document.getElementById("allBox").style.display      = "none";
+    document.getElementById("catSections").style.display = "flex";
+}
+ 
+/* ── RENDER CATEGORY SECTIONS ──────────── */
+function showCategorySections(items) {
+    const container = document.getElementById("catSections");
+    container.innerHTML = "";
+ 
+    // Group items by category
+    const grouped = {};
+    CAT_ORDER.forEach(c => grouped[c] = []);
+    items.forEach(item => {
+        const cat = item.category || "General";
+        if (!grouped[cat]) grouped[cat] = [];
+        grouped[cat].push(item);
+    });
+ 
+    // Render one section per category that has items (or all if empty)
+    let sectionsRendered = 0;
+    CAT_ORDER.forEach((cat, idx) => {
+        const catItems = grouped[cat] || [];
+        const cfg = CAT_CONFIG[cat];
+ 
+        const section = document.createElement("div");
+        section.className = "cat-section " + cfg.cls;
+        section.id = "sec-" + cat.toLowerCase();
+ 
+        // Count of expiring/expired within this category
+        const expiredCount = catItems.filter(i => getDiff(i.expiry_date) < 0).length;
+        const soonCount    = catItems.filter(i => { const d=getDiff(i.expiry_date); return d>=0 && d<=3; }).length;
+        let alertTip = "";
+        if (expiredCount > 0)  alertTip = ` · 🚨 ${expiredCount} expired`;
+        else if (soonCount > 0) alertTip = ` · ⚠️ ${soonCount} expiring soon`;
+ 
+        section.innerHTML = `
+            <div class="cat-head" onclick="toggleSection('${cat}')">
+                <div class="cat-head-left">
+                    <div class="cat-head-icon">${cfg.icon}</div>
+                    <div>
+                        <div class="cat-head-title">${cfg.label}</div>
+                        <div class="cat-head-sub">${cfg.desc}${alertTip}</div>
+                    </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px">
+                    <span class="cat-count">${catItems.length} item${catItems.length !== 1 ? "s" : ""}</span>
+                    <span class="cat-chevron">▾</span>
+                </div>
+            </div>
+            <div class="cat-body">
+                ${catItems.length === 0
+                    ? `<div class="empty-cat"><span>${cfg.icon}</span>No ${cfg.label.toLowerCase()} items yet.<br>Add one using the form above.</div>`
+                    : `<table>
+                        <thead><tr>
+                            <th>#</th><th>Item Name</th><th>Expiry Date</th><th>Status</th><th>Action</th>
+                        </tr></thead>
+                        <tbody>${catItems.map((item, i) => buildRow(item, i+1)).join("")}</tbody>
+                    </table>`
+                }
+            </div>
+        `;
+        container.appendChild(section);
+        sectionsRendered++;
+    });
+}
+ 
+/* ── TOGGLE SECTION COLLAPSE ───────────── */
+function toggleSection(cat) {
+    const sec = document.getElementById("sec-" + cat.toLowerCase());
+    sec.classList.toggle("collapsed");
+}
+ 
+/* ── BUILD A TABLE ROW ─────────────────── */
+function buildRow(item, num) {
+    const diff = getDiff(item.expiry_date);
+    const expiry = new Date(item.expiry_date);
+    expiry.setHours(0,0,0,0);
+    const d = expiry.getDate().toString().padStart(2,"0");
+    const m = (expiry.getMonth()+1).toString().padStart(2,"0");
+    const y = expiry.getFullYear();
+ 
+    let badge;
+    if      (diff < 0)   badge = `<span class="badge b-exp">🚨 Expired ${Math.abs(diff)}d ago</span>`;
+    else if (diff === 0) badge = `<span class="badge b-today">🔥 Expires TODAY</span>`;
+    else if (diff <= 3)  badge = `<span class="badge b-soon">⚠️ ${diff}d left</span>`;
+    else                 badge = `<span class="badge b-safe">✅ ${diff}d left</span>`;
+ 
+    return `
+        <tr>
+            <td style="color:var(--muted);font-weight:600">${num}</td>
+            <td><span class="item-name">${item.item_name}</span></td>
+            <td style="color:var(--muted)">${d}-${m}-${y}</td>
+            <td>${badge}</td>
+            <td><button class="del-btn" onclick="deleteItem(${item.id})">Delete</button></td>
+        </tr>`;
+}
+ 
+/* ── DAYS DIFF HELPER ──────────────────── */
+function getDiff(dateStr) {
+    const today  = new Date(); today.setHours(0,0,0,0);
+    const expiry = new Date(dateStr); expiry.setHours(0,0,0,0);
+    return Math.ceil((expiry - today) / (1000 * 60 * 60 * 24));
+}
+ 
+/* ── ADD ITEM ──────────────────────────── */
+async function addItem() {
+    const item_name   = document.getElementById("itemName").value.trim();
+    const expiry_date = document.getElementById("itemDate").value;
+    const category    = document.getElementById("itemCat").value.replace(/[^a-zA-Z]/g, "");
+    if (!item_name || !expiry_date) return alert("Item name and date are required!");
+    const res  = await fetch(BASE + "/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+        body: JSON.stringify({ item_name, expiry_date, category })
+    });
+    const data = await res.json();
+    if (data.status === "success") {
+        document.getElementById("itemName").value = "";
+        document.getElementById("itemDate").value = "";
+        loadDashboard();
+        loadItemsAndRenderSections();
+    } else alert("❌ Error adding item. Please try again.");
+}
+ 
+/* ── FILTER / SEARCH ───────────────────── */
+function applyFilter() {
+    const search = document.getElementById("searchInput").value.trim();
+    const cat    = document.getElementById("filterCat").value;
+    let filtered = allItems;
+    if (search) filtered = filtered.filter(i => i.item_name.toLowerCase().includes(search.toLowerCase()));
+    if (cat !== "All") filtered = filtered.filter(i => i.category === cat);
+    showAllTable(filtered, "🔍 Search Results");
+}
+ 
+function showSoon() {
+    const filtered = allItems.filter(i => { const d = getDiff(i.expiry_date); return d >= 0 && d <= 3; });
+    document.getElementById("filterCat").value = "All";
+    document.getElementById("searchInput").value = "";
+    showAllTable(filtered, "⚠️ Expiring Soon");
+}
+ 
+function showAllTable(items, title) {
+    document.getElementById("catSections").style.display = "none";
+    document.getElementById("allBox").style.display      = "block";
+    document.getElementById("allBoxTitle").textContent   = title;
+    document.getElementById("itemCount").textContent     = items.length + " item(s)";
+    const tbody = document.getElementById("allBody");
+    if (items.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--muted)">No items found</td></tr>`;
+        return;
+    }
+    tbody.innerHTML = items.map((item, i) => {
+        const cfg = CAT_CONFIG[item.category] || CAT_CONFIG["Other"];
+        const diff = getDiff(item.expiry_date);
+        const expiry = new Date(item.expiry_date);
+        expiry.setHours(0,0,0,0);
+        const d = expiry.getDate().toString().padStart(2,"0");
+        const m = (expiry.getMonth()+1).toString().padStart(2,"0");
+        const y = expiry.getFullYear();
+        let badge;
+        if (diff < 0) badge = `<span class="badge b-exp">🚨 Expired ${Math.abs(diff)}d ago</span>`;
+        else if (diff === 0) badge = `<span class="badge b-today">🔥 Expires TODAY</span>`;
+        else if (diff <= 3)  badge = `<span class="badge b-soon">⚠️ ${diff}d left</span>`;
+        else                 badge = `<span class="badge b-safe">✅ ${diff}d left</span>`;
+        return `<tr>
+            <td style="color:var(--muted);font-weight:600">${i+1}</td>
+            <td><span class="item-name">${item.item_name}</span></td>
+            <td>${cfg.icon} <span style="font-size:12px;color:var(--muted)">${item.category}</span></td>
+            <td style="color:var(--muted)">${d}-${m}-${y}</td>
+            <td>${badge}</td>
+            <td><button class="del-btn" onclick="deleteItem(${item.id})">Delete</button></td>
+        </tr>`;
+    }).join("");
+}
+ 
+function resetFilter() {
+    document.getElementById("searchInput").value = "";
+    document.getElementById("filterCat").value   = "All";
+    document.getElementById("allBox").style.display      = "none";
+    document.getElementById("catSections").style.display = "flex";
+    loadItemsAndRenderSections();
+}
+ 
+/* ── DELETE ────────────────────────────── */
+async function deleteItem(id) {
+    if (!confirm("Delete this item?")) return;
+    const res  = await fetch(BASE + "/delete/" + id, {
+        method: "DELETE",
+        headers: { "Authorization": "Bearer " + token }
+    });
+    const data = await res.json();
+    if (data.status === "deleted") {
+        loadDashboard();
+        loadItemsAndRenderSections();
+    }
+}
+</script>
+ <!-- PWA: Register Service Worker + Handle Install -->
+<script>
+// Register the service worker
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+        navigator.serviceWorker
+            .register("/sw.js")
+            .then((reg) => console.log("✅ SW registered:", reg.scope))
+            .catch((err) => console.log("❌ SW failed:", err));
+    });
+}
+
+// Capture the install prompt event
+// Browser fires this when your app meets PWA criteria
+let deferredPrompt = null;
+
+window.addEventListener("beforeinstallprompt", (event) => {
+    event.preventDefault();
+    deferredPrompt = event;
+
+    // Show the Install App button in the navbar
+    const btn = document.getElementById("installBtn");
+    if (btn) btn.style.display = "flex";
+});
+
+// Called when user clicks the Install App button
+function installApp() {
+    if (!deferredPrompt) {
+        alert("To install: tap the 3-dot menu in Chrome then 'Add to Home Screen'");
+        return;
+    }
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then((result) => {
+        if (result.outcome === "accepted") {
+            console.log("✅ App installed!");
+            const btn = document.getElementById("installBtn");
+            if (btn) btn.style.display = "none";
+        }
+        deferredPrompt = null;
+    });
+}
+
+// Hide install button if app is already installed
+window.addEventListener("appinstalled", () => {
+    const btn = document.getElementById("installBtn");
+    if (btn) btn.style.display = "none";
+    deferredPrompt = null;
+    console.log("✅ PWA was installed");
+});
+</script>
+</body>
+</html>
