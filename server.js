@@ -40,25 +40,27 @@ app.use("/icons", express.static(
 ));
 
 // MySQL Connection
+// ── MySQL Connection Pool ─────────────────────────────────
 const db = mysql.createPool({
-    host:                process.env.DB_HOST,
-    user:                process.env.DB_USER,
-    password:            process.env.DB_PASSWORD,
-    database:            process.env.DB_NAME,
-    port:                process.env.DB_PORT || 3306,
-    waitForConnections:  true,
-    connectionLimit:     10,
-    queueLimit:          0,
-    enableKeepAlive:     true,
-    keepAliveInitialDelay: 0
+    host:              process.env.DB_HOST,
+    user:              process.env.DB_USER,
+    password:          process.env.DB_PASSWORD,
+    database:          process.env.DB_NAME,
+    port:              process.env.DB_PORT || 3306,
+    waitForConnections: true,
+    connectionLimit:   10,
+    queueLimit:        0
 });
 
-// Test the connection
-db.getConnection((err, connection) => {
-    if (err) { console.log("❌ MySQL Error:", err.message); return; }
-    console.log("✅ MySQL Connected Successfully!");
-    connection.release();
+// Test connection on startup
+db.query("SELECT 1", (err) => {
+    if (err) {
+        console.log("❌ MySQL Error:", err.message);
+    } else {
+        console.log("✅ MySQL Connected Successfully!");
+    }
 });
+
 
 // Share DB
 app.set("db", db);
